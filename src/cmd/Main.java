@@ -11,6 +11,10 @@ public class Main extends JFrame {
     private final CMD console = new CMD();
     private int promptPos;
 
+    
+    private boolean waitingWrite = false;
+    private String pendingWriteFile = null;
+
     public Main() {
         setTitle("Administrador: Command Prompt");
         setSize(820, 520);
@@ -26,13 +30,13 @@ public class Main extends JFrame {
 
         add(new JScrollPane(area), BorderLayout.CENTER);
 
-        // Cabecera
+       
         println("Microsoft Windows [Version 10.0.22621.521]");
         println("(c) Microsoft Corporation. All rights reserved.");
         println("");
         printPrompt();
 
-        // Proteger texto anterior al prompt
+       
         ((AbstractDocument) area.getDocument()).setDocumentFilter(new DocumentFilter() {
             @Override public void remove(FilterBypass fb, int off, int len) throws BadLocationException {
                 if (off < promptPos) return; super.remove(fb, off, len); }
@@ -45,7 +49,7 @@ public class Main extends JFrame {
                 super.insertString(fb, off, s, a); }
         });
 
-        // Teclas
+      
         area.addKeyListener(new KeyAdapter() {
             @Override public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_HOME) {
@@ -76,25 +80,44 @@ public class Main extends JFrame {
             area.append("\n");
             if (line.isEmpty()) { printPrompt(); return; }
 
+            
+            if (waitingWrite) {
+                String text = line;
+                String out = console.escribir(pendingWriteFile, text);
+                if (!out.isEmpty()) println(out);
+                waitingWrite = false;
+                pendingWriteFile = null;
+                printPrompt();
+                return;
+            }
+
             String[] parts = line.split("\\s+", 2);
             String cmd = parts[0].toLowerCase();
             String arg = (parts.length > 1) ? parts[1] : "";
 
-            if ("escribir".equals(cmd)) { // Escribir <archivo>
+            if ("escribir".equals(cmd)) { 
                 if (arg.isBlank()) {
-                    println("Comando no válido.");
+                    println("Comando no valido.");
                 } else {
-                    String text = JOptionPane.showInputDialog(this,
-                            "Texto para \"" + arg + "\":", "Escribir", JOptionPane.PLAIN_MESSAGE);
-                    if (text != null) {
-                        String out = console.write(arg, text);
+                    int sp = arg.indexOf(' ');
+                    if (sp >= 0) {
+                        
+                        String file = arg.substring(0, sp).trim();
+                        String text = arg.substring(sp + 1);
+                        String out = console.escribir(file, text);
                         if (!out.isEmpty()) println(out);
+                    } else {
+                        
+                        pendingWriteFile = arg;
+                        waitingWrite = true;
+                        println("Escriba el contenido y presione Enter:");
                     }
                 }
             } else {
-                String out = console.execute(line);
+                String out = console.ejecutar(line);
                 if (!out.isEmpty()) println(out);
             }
+
             printPrompt();
         } catch (BadLocationException ignored) {}
     }
@@ -102,4 +125,8 @@ public class Main extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new Main().setVisible(true));
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 2c5a4c07542bfacb85308a3f34cc72450c6b2f4b
