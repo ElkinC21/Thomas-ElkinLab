@@ -30,7 +30,7 @@ public class CMD {
             case "mfile":     return mfile(arg);
             case "rm":        return rm(arg);
             case "cd":        return cd(arg);
-            case "<...>":     return back();      
+            case "..":     return back();      
             case "dir":       return dir();
             case "date":      return date();
             case "time":      return time();
